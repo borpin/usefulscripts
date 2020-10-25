@@ -1,9 +1,24 @@
+# Usage - pass the path to a filename as an optional argument.
+
 import sys, os, requests, json
 from datetime import datetime
 from configobj import ConfigObj
 
 script_path = os.path.dirname(os.path.realpath(__file__))
-settings = ConfigObj(script_path+"/agile.conf", file_error=True)
+
+if len(sys.argv) == 1:
+    # No config file specified
+    settings = ConfigObj(script_path+"/agile.conf", file_error=True)
+else:
+    try:
+        settings = ConfigObj(sys.argv[1], file_error=True)
+    except IOError:
+        print('config file not found - did you use the full path?')
+        sys.exit(0)
+
+# Always useful to know when the script was run
+now = datetime.now()
+print ("Current date and time : " + now.strftime("%Y-%m-%d %H:%M:%S"))
 
 # Step 1: Create feed via API call or use input interface in emoncms to create manually
 result = requests.get(settings['emoncms']['server']+"/feed/getid.json",params={'tag':'agile','name':'consumption','apikey':settings['emoncms']['apikey']})
